@@ -46,7 +46,7 @@ class Chat(Base):
 	__tablename__ = 'chats'
 
 	id: Mapped[intpk]
-	name: Mapped[str] = mapped_column()
+	name: Mapped[str] = mapped_column(String(50))
 	is_group: Mapped[bool] = mapped_column(default=False)
 
 	# Relationships
@@ -73,7 +73,7 @@ class UserInChat(Base):
 		primary_key=True,
 	)
 	role: Mapped[str] = mapped_column(
-    Enum(RoleEnum, native_enum=False),
+    SQLEnum(RoleEnum, native_enum=False, length=20),
     default=RoleEnum.MEMBER
   )
 	# role: Mapped[int] = mapped_column(primary_key=True)  # нажна ли доп таблица?

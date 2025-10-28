@@ -9,8 +9,12 @@ class Settings(BaseSettings):
 	# DataBase
 	DATABASE_URL: str
 
+	# # AuthX
+	JWT_SECRET_KEY: str
+
+
 	class Config:
-		env_file = 'app/.env'
+		env_file = '.env'
 		case_sensitive = True
 
 
