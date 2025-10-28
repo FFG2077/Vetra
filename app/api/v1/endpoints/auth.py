@@ -3,21 +3,11 @@ from core.security import hash_password, verify_password
 from fastapi import APIRouter, HTTPException, Response, Depends
 from sqlalchemy.orm import Session
 from infrastructure.database import SessionLocal, get_db, User
-from pydantic import BaseModel, EmailStr
+# from pydantic import BaseModel, EmailStr
+from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 
 
 router = APIRouter()
-
-class UserLoginSchema(BaseModel):
-	email: EmailStr
-	password: str
-
-
-class UserRegisterSchema(BaseModel):
-	name: str
-	email: EmailStr
-	password: str
-
 
 @router.post('/login')
 def login(creds: UserLoginSchema, response: Response, db: Session = Depends(get_db)):
