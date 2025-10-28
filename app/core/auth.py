@@ -9,8 +9,8 @@ config = AuthXConfig()
 
 # Main settigs
 config.JWT_SECRET_KEY = settings.JWT_SECRET_KEY
-# config.JWT_ACCESS_TOKEN_EXPIRES = 3600
-# config.JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30
+config.JWT_ACCESS_TOKEN_EXPIRES = 3600
+config.JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30
 
 # headers
 config.JWT_TOKEN_LOCATION = ["headers"]
@@ -18,7 +18,7 @@ config.JWT_HEADER_NAME = "Authorization"
 config.JWT_HEADER_TYPE = "Bearer"
 
 # Algoritm
-# config.JWT_ALGORITHM = "HS256"
+config.JWT_ALGORITHM = "HS256"
 
 security = AuthX(config=config)
 
