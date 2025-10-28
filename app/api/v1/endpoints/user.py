@@ -1,6 +1,5 @@
 from infrastructure.database import get_db, User
 from fastapi import APIRouter, Depends
-# from pydantic import BaseModel
 from domain.schemas.user import UserOut
 from sqlalchemy.orm import Session
 from core.auth import get_current_user

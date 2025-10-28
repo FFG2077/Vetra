@@ -76,18 +76,3 @@ class UserInChat(Base):
     SQLEnum(RoleEnum, native_enum=False, length=20),
     default=RoleEnum.MEMBER
   )
-	# role: Mapped[int] = mapped_column(primary_key=True)  # нажна ли доп таблица?
-
-
-# class PasswordHash(Base): подумать!
-# 	__tablename__ = 'password_hash'
-	
-# 	id: Mapped[int] = mapped_column(primary_key=True)
-# 	password_hash: Mapped[str] = mapped_column(String(255))
-
-
-# class Role(Base):
-# 	__tablename__ = 'role'
-
-# 	id: Mapped[int] = mapped_column(primary_key=True)
-# 	name: Mapped[str] = mapped_column(String(20))

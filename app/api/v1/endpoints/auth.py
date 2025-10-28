@@ -2,8 +2,7 @@ from core.auth import security
 from core.security import hash_password, verify_password
 from fastapi import APIRouter, HTTPException, Response, Depends
 from sqlalchemy.orm import Session
-from infrastructure.database import SessionLocal, get_db, User
-# from pydantic import BaseModel, EmailStr
+from infrastructure.database import get_db, User
 from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 
 
