@@ -9,8 +9,15 @@ config = AuthXConfig()
 
 # Main settigs
 config.JWT_SECRET_KEY = settings.JWT_SECRET_KEY
-config.JWT_ACCESS_TOKEN_EXPIRES = 3600
-config.JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30
+
+if settings.DEBUG:
+  # dev
+  config.JWT_ACCESS_TOKEN_EXPIRES = 3600 * 24 * 365  # infinity token for dev
+  config.JWT_REFRESH_TOKEN_EXPIRES = 3600 * 24 * 365 * 30  # infinity token for dev
+else:
+  # prod
+  config.JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
+  config.JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30  # 30 days
 
 # headers
 config.JWT_TOKEN_LOCATION = ["headers"]

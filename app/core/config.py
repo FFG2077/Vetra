@@ -9,8 +9,11 @@ class Settings(BaseSettings):
 	# DataBase
 	DATABASE_URL: str
 
-	# # AuthX
+	# AuthX
 	JWT_SECRET_KEY: str
+
+	# For debug
+	DEBUG: bool
 
 
 	class Config:
