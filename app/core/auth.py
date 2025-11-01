@@ -1,6 +1,7 @@
 from authx import AuthX, AuthXConfig
 from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from infrastructure.database import get_db, User
 from .config import settings
 from datetime import timedelta
@@ -35,11 +36,12 @@ security = AuthX(config=config)
 
 async def get_current_user(
   token = Depends(security.access_token_required),
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db)
 ) -> User:
   
   user_id = int(token.sub)
-  user = db.query(User).filter(User.id == user_id).first()
+  result = await db.execute(select(User).where(User.id == user_id))
+  user = result.scalars().first()
   if not user:
     raise HTTPException(401, "User not found")
   return user

@@ -2,12 +2,19 @@ from fastapi import FastAPI
 from api.v1 import api_router
 from infrastructure.database import Base, engine
 from fastapi.openapi.utils import get_openapi
+from contextlib import asynccontextmanager
 
 
 # create tables
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	async with engine.begin() as conn:
+		await conn.run_sync(Base.metadata.create_all)
 
-app = FastAPI(title='Seetalk')
+	yield
+
+
+app = FastAPI(title='Seetalk', lifespan=lifespan)
 
 # routes
 app.include_router(api_router)

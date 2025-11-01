@@ -1,7 +1,8 @@
 from core.auth import security
 from core.security import hash_password, verify_password
 from fastapi import APIRouter, HTTPException, Response, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from infrastructure.database import get_db, User
 from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 
@@ -9,10 +10,9 @@ from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 router = APIRouter()
 
 @router.post('/login')
-def login(creds: UserLoginSchema, response: Response, db: Session = Depends(get_db)):
-	user = db.query(User).filter(
-		User.email == creds.email
-	).first()
+async def login(creds: UserLoginSchema, response: Response, db: AsyncSession = Depends(get_db)):
+	result = await db.execute(select(User).where(User.email == creds.email))
+	user = result.scalars().first()
 
 	# find user
 	if not user:
@@ -29,9 +29,11 @@ def login(creds: UserLoginSchema, response: Response, db: Session = Depends(get_
 
 
 @router.post('/registration', summary='registration')
-def registration(creds: UserRegisterSchema, response: Response, db: Session = Depends(get_db)):
+async def registration(creds: UserRegisterSchema, response: Response, db: AsyncSession = Depends(get_db)):
 	# check if mail is busy
-	if db.query(User).filter(User.email == creds.email).first():
+	result = await db.execute(select(User).where(User.email == creds.email))
+	user = result.scalars().first()
+	if user:
 		raise HTTPException(status_code=400, detail='Email already exists')
 	
 	# create user
@@ -42,8 +44,8 @@ def registration(creds: UserRegisterSchema, response: Response, db: Session = De
 	)
 	
 	db.add(user)
-	db.commit()
-	db.refresh(user)
+	await db.commit()
+	await db.refresh(user)
 
 	token = security.create_access_token(uid=str(user.id))
 	
