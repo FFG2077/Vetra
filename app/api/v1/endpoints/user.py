@@ -5,13 +5,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.auth import get_current_user
 
+from repositories.user_repo import UserRepository
+
 
 router = APIRouter()
 
 @router.get('/get_users', summary='Get all users')
 async def get_users(db: AsyncSession=Depends(get_db)):
-	result = await db.execute(select(User))
-	users = result.scalars().all()
+	repo = UserRepository(db)
+	users = await repo.get_users()
+	# result = await db.execute(select(User))
+	# users = result.scalars().all()
 	return users
 
 
