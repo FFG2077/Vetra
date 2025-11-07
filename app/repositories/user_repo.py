@@ -1,8 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from infrastructure.database import User
-from core.security import hash_password
-from domain.schemas.user import UserLoginSchema, UserRegisterSchema, UserOut
+from domain.schemas.user import UserRegisterSchema, UserOut
 
 
 class UserRepository:

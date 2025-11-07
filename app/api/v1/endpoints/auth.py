@@ -1,9 +1,7 @@
 from core.auth import security
-from core.security import hash_password, verify_password
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, Response, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from infrastructure.database import get_db, User
+from infrastructure.database import get_db
 from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 
 from services.user_service import UserService
@@ -17,16 +15,6 @@ async def login(creds: UserLoginSchema, response: Response, db: AsyncSession = D
 	repo = UserRepository(db)
 	service = UserService(repo)
 	user = await service.login_user(creds)
-	# result = await db.execute(select(User).where(User.email == creds.email))
-	# user = result.scalars().first()
-
-	# # find user
-	# if not user:
-	# 	raise HTTPException(status_code=401, detail='Incorrect username or password')
-	
-	# # verify password
-	# if not verify_password(creds.password, user.password_hash):
-	# 	raise HTTPException(status_code=401, detail='Incorrect username or password')
 	
 	# create token
 	token = security.create_access_token(uid=str(user.id))
