@@ -1,7 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from domain.schemas.user import UserOut, UserRegisterSchema
 from infrastructure.database import User
-from domain.schemas.user import UserRegisterSchema, UserOut
 
 
 class UserRepository:

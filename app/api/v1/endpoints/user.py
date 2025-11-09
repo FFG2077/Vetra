@@ -1,12 +1,11 @@
-from infrastructure.database import get_db, User
 from fastapi import APIRouter, Depends
-from domain.schemas.user import UserOut
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.auth import get_current_user
-
-from repositories.user_repo import UserRepository
+from domain.schemas.user import UserOut
+from infrastructure.database import User, get_db
 from repositories.chat_repo import ChatRepository
-
+from repositories.user_repo import UserRepository
 from services.chat_service import ChatService
 
 

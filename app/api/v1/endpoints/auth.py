@@ -1,11 +1,11 @@
-from core.auth import security
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from infrastructure.database import get_db
-from domain.schemas.user import UserLoginSchema, UserRegisterSchema
 
-from services.user_service import UserService
+from core.auth import security
+from domain.schemas.user import UserLoginSchema, UserRegisterSchema
+from infrastructure.database import get_db
 from repositories.user_repo import UserRepository
+from services.user_service import UserService
 
 
 router = APIRouter()

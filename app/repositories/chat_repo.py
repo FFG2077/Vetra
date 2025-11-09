@@ -1,9 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import Chat, UserInChat, RoleEnum
-from domain.schemas.chat import ChatOut
-from domain.schemas.chat import CreateChatSchema
+from domain.schemas.chat import ChatOut, CreateChatSchema
 
 
 class ChatRepository:

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import get_db, User
+from core.auth import get_current_user
 from domain.schemas.chat import CreateChatSchema
+from infrastructure.database import User, get_db
 from repositories.chat_repo import ChatRepository
 from services.chat_service import ChatService
-from core.auth import get_current_user
 
 
 router = APIRouter()

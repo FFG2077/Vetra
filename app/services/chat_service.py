@@ -1,9 +1,9 @@
-from repositories.chat_repo import ChatRepository
-from infrastructure.database import RoleEnum, User
-from domain.schemas.chat import CreateChatSchema
-
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
+
+from domain.schemas.chat import CreateChatSchema
+from infrastructure.database import RoleEnum, User
+from repositories.chat_repo import ChatRepository
 
 
 class ChatService:

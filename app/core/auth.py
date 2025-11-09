@@ -1,11 +1,12 @@
-from authx import AuthX, AuthXConfig
-from fastapi import Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from infrastructure.database import get_db, User
-from .config import settings
 from datetime import timedelta
 
+from authx import AuthX, AuthXConfig
+from fastapi import Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .config import settings
+from infrastructure.database import User, get_db
 
 config = AuthXConfig()
 
