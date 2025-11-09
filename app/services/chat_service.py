@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status, Response
 from sqlalchemy.exc import IntegrityError
 
 from domain.schemas.chat import CreateChatSchema
@@ -25,3 +25,12 @@ class ChatService:
 	
 	async def my_chats(self, user: User):
 		return await self.repo.get_chats_by_user(user.id)
+	
+	async def delete_chat(self, chat_id: int) -> Response:
+		'''Delete chat'''
+		try:
+			await self.repo.delete_chat(chat_id)
+		except IntegrityError:
+			raise HTTPException(status_code=400, detail="Failed to delete chat")
+		
+		return Response(status_code=status.HTTP_204_NO_CONTENT)

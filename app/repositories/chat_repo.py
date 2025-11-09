@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import Chat, UserInChat, RoleEnum
@@ -46,5 +46,11 @@ class ChatRepository:
 		
 		return result
 
-	async def delete_chat(self):
+	async def delete_chat(self, chat_id):
 		'''Delete chat'''
+		query = await self.db.execute(
+			delete(Chat)
+			.where(Chat.id == chat_id)
+		)
+		await self.db.commit()
+

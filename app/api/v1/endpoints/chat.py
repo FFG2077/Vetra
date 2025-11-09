@@ -16,3 +16,13 @@ async def create_chat(chat_data: CreateChatSchema, db: AsyncSession = Depends(ge
 	service = ChatService(repo)
 
 	await service.create_chat(chat_data, user)
+
+
+@router.delete('/delete_chat', summary='Delete chat')
+async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	response = await service.delete_chat(chat_id)
+
+	return response
