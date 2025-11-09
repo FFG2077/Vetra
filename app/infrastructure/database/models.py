@@ -1,10 +1,13 @@
 from datetime import datetime
-from typing import Annotated
-from sqlalchemy import ForeignKey, DateTime, String, Text, Enum as SQLEnum
 from enum import Enum
+from typing import Annotated
+
+from sqlalchemy import ForeignKey, DateTime, String, Text, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+
 from .base import Base
+
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
