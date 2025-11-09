@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.get('/get_users', summary='Get all users')
 async def get_users(db: AsyncSession=Depends(get_db)):
+	'''Debug / temporary function'''
 	repo = UserRepository(db)
 	users = await repo.get_users()
 	return users
