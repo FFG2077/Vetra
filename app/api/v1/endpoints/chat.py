@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.auth import get_current_user
@@ -15,14 +15,16 @@ async def create_chat(chat_data: CreateChatSchema, db: AsyncSession = Depends(ge
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	await service.create_chat(chat_data, user)
+	chat = await service.create_chat(chat_data, user)
+
+	return chat
 
 
 @router.delete('/delete_chat', summary='Delete chat')
 async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)
+	
+	await service.delete_chat(chat_id)
 
-	response = await service.delete_chat(chat_id)
-
-	return response
+	return Response(status_code=status.HTTP_204_NO_CONTENT)
