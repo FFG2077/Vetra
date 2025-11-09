@@ -11,7 +11,7 @@ from services.user_service import UserService
 router = APIRouter()
 
 @router.post('/login')
-async def login(creds: UserLoginSchema, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(creds: UserLoginSchema, db: AsyncSession = Depends(get_db)):
 	repo = UserRepository(db)
 	service = UserService(repo)
 	user = await service.login_user(creds)
@@ -23,7 +23,7 @@ async def login(creds: UserLoginSchema, response: Response, db: AsyncSession = D
 
 
 @router.post('/registration', summary='registration')
-async def registration(creds: UserRegisterSchema, response: Response, db: AsyncSession = Depends(get_db)):
+async def registration(creds: UserRegisterSchema, db: AsyncSession = Depends(get_db)):
 	repo = UserRepository(db)
 	service = UserService(repo)
 	user = await service.register_user(creds)
