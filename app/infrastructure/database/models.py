@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Annotated
+from uuid import uuid4
 
 from sqlalchemy import ForeignKey, DateTime, String, Text, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,6 +22,12 @@ class User(Base):
 	__tablename__ = 'users'
 
 	id: Mapped[intpk]
+	public_id: Mapped[str] = mapped_column(
+    String(36),
+    unique=True,
+    index=True,
+    default=lambda: str(uuid4())
+  )
 	name: Mapped[str] = mapped_column(String(50))  # unique=True
 	created_at: Mapped[created_at]
 	email: Mapped[str] = mapped_column(String(255), unique=True)
