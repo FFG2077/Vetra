@@ -28,3 +28,13 @@ async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: Us
 	await service.delete_chat(chat_id)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/invite_user', summary='Invite a user to a group')
+async def invite_user(user_id: int,chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	await service.invite_user(user_id, chat_id)
+
+	return Response(status_code=status.HTTP_204_NO_CONTENT)
