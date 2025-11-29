@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class UserOut(BaseModel):
-	id: int
+	public_id: str
 	name: str
 	email: str
 
