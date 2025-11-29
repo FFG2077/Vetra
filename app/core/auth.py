@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import settings
 from infrastructure.database import User, get_db
+from domain.schemas.user import UserOut
 
 config = AuthXConfig()
 
@@ -45,4 +46,4 @@ async def get_current_user(
   user = result.scalars().first()
   if not user:
     raise HTTPException(401, "User not found")
-  return user
+  return UserOut.model_validate(user)
