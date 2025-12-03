@@ -86,3 +86,18 @@ class UserInChat(Base):
     SQLEnum(RoleEnum, native_enum=False, length=20),
     default=RoleEnum.MEMBER
   )
+
+
+class Friendship(Base):
+	__tablename__ = 'friendships'
+
+	id: Mapped[intpk]
+	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+	friend_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+	created_at: Mapped[created_at]
+	status: Mapped[str] = mapped_column(String(20), default='pending')
+
+class FriendshipStatus(str, Enum):
+	PENDING = "pending"
+	ACCEPTED = "accepted"
+	BLOCKED = "blocked"
