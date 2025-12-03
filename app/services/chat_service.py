@@ -24,7 +24,7 @@ class ChatService:
 		return chat
 	
 	async def my_chats(self, user: User):
-		return await self.repo.get_chats_by_user(user.id)
+		return await self.repo.get_chats_by_user(user.public_id)
 	
 	async def delete_chat(self, chat_id: int):
 		'''Delete chat'''

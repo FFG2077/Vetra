@@ -1,7 +1,7 @@
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import Chat, UserInChat, RoleEnum
+from infrastructure.database import Chat, UserInChat, RoleEnum, User
 from domain.schemas.chat import ChatOut, CreateChatSchema
 
 
@@ -34,12 +34,13 @@ class ChatRepository:
 		self.db.add(user_in_chat)
 		await self.db.commit()
 
-	async def get_chats_by_user(self, user_id: int):
-		'''Get chats by user'''
+	async def get_chats_by_user(self, public_id: int):
+		'''Get chats by user id'''
+		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
 		query = await self.db.execute(
 			select(Chat)
 			.join(UserInChat, UserInChat.chat_id == Chat.id)
-			.where(UserInChat.user_id == user_id)
+			.where(UserInChat.user_id == subquery)
 		)
 
 		result = query.scalars().all()
