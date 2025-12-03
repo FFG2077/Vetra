@@ -23,10 +23,12 @@ class ChatRepository:
 
 		return chat
 
-	async def add_user_to_chat(self, user_id: int, chat_id: int, role: RoleEnum.MEMBER):
+	async def add_user_to_chat(self, public_id: str, chat_id: int, role: RoleEnum.MEMBER):
 		'''Add user in chat'''
+		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+		print(subquery)
 		user_in_chat = UserInChat(
-			user_id=user_id,
+			user_id=subquery,
 			chat_id=chat_id,
 			role=role
 		)

@@ -15,9 +15,9 @@ class ChatService:
 
 		try:
 			if chat.is_group:
-				await self.repo.add_user_to_chat(user.id, chat.id, RoleEnum.ADMIN)
+				await self.repo.add_user_to_chat(user.public_id, chat.id, RoleEnum.ADMIN)
 			else:
-				await self.repo.add_user_to_chat(user.id, chat.id, RoleEnum.MEMBER)
+				await self.repo.add_user_to_chat(user.public_id, chat.id, RoleEnum.MEMBER)
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail="User already in chat")
 		
