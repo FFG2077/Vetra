@@ -17,7 +17,7 @@ async def login(creds: UserLoginSchema, db: AsyncSession = Depends(get_db)):
 	user = await service.login_user(creds)
 	
 	# create token
-	token = security.create_access_token(uid=str(user.id))
+	token = security.create_access_token(uid=str(user.public_id))
 		
 	return {'access_token': token, "token_type": "bearer",}
 
@@ -28,12 +28,12 @@ async def registration(creds: UserRegisterSchema, db: AsyncSession = Depends(get
 	service = UserService(repo)
 	user = await service.register_user(creds)
 
-	token = security.create_access_token(uid=str(user.id))
+	token = security.create_access_token(uid=str(user.public_id))
 	
 	return {
 		'access_token': token,
 		"user": {
-      "id": user.id,
+      "id": user.public_id,
       "name": user.name,
       "email": user.email
     }
