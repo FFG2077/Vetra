@@ -33,10 +33,10 @@ class ChatService:
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail="Failed to delete chat")
 	
-	async def invite_user(self, user_id: int, chat_id: int):
-		'''Invite user'''
-		try:
-			chats = await self.repo.get_chats_by_user(user_id)
-			await self.repo.add_user_to_chat(user_id, chat_id, RoleEnum.MEMBER)
-		except IntegrityError:
-			raise HTTPException(status_code=400, detail="Failed to invite user")
+	# async def invite_user(self, public_id: str, chat_id: int):
+	# 	'''Invite user'''
+	# 	try:
+	# 		chats = await self.repo.get_chats_by_user(public_id)
+	# 		await self.repo.add_user_to_chat(public_id, chat_id, RoleEnum.MEMBER)
+	# 	except IntegrityError:
+	# 		raise HTTPException(status_code=400, detail="Failed to invite user")
