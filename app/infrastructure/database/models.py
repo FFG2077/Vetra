@@ -29,7 +29,6 @@ class User(Base):
     default=lambda: str(uuid4())
   )
 	name: Mapped[str] = mapped_column(String(50))  # unique=True
-	created_at: Mapped[created_at]
 	email: Mapped[str] = mapped_column(String(255), unique=True)
 	password_hash: Mapped[str] = mapped_column(String(255))
 
@@ -94,7 +93,6 @@ class Friendship(Base):
 	id: Mapped[intpk]
 	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
 	friend_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
-	created_at: Mapped[created_at]
 	status: Mapped[str] = mapped_column(String(20), default='pending')
 
 class FriendshipStatus(str, Enum):
