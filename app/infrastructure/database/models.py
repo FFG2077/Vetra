@@ -43,12 +43,6 @@ class Message(Base):
 	chat_id: Mapped[int] = mapped_column(ForeignKey('chats.id', ondelete='CASCADE'))
 	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
 	content: Mapped[str] = mapped_column(Text, nullable=False)
-	created_at: Mapped[created_at]
-	updated_at: Mapped[datetime | None] = mapped_column(
-    DateTime(timezone=True),
-    onupdate=func.now(),
-    default=None
-  )
 
 
 class Chat(Base):
