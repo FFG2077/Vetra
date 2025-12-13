@@ -16,7 +16,6 @@ class FriendshipService:
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail='Error fetching friends')
 		
-	
 	async def send_request(self, user_uuid: str, friend_uuid: str):
 		'''Send friend request'''
 		try:
@@ -28,5 +27,12 @@ class FriendshipService:
 		'''Accept friend request'''
 		try:
 			await self.repo.accept_request(user_uuid=user_uuid, friend_uuid=friend_uuid)
-		except IntegrityError:
+		except ValueError:
 			raise HTTPException(status_code=400, detail='Error accepting friend request')
+		
+	async def remove_friend(self, user_uuid: str, friend_uuid: str):
+		'''Remove friend'''
+		try:
+			await self.repo.remove_friend(user_uuid=user_uuid, friend_uuid=friend_uuid)
+		except ValueError:
+			raise HTTPException(status_code=400, detail='Error removing friend')

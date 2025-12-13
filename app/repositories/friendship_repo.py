@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.schemas.user import UserOut
@@ -51,5 +51,27 @@ class FriendshipRepository:
 			)
 			.values(status=FriendshipStatus.ACCEPTED)
 		)
+
+		if query.rowcount == 0:
+			raise ValueError("Friend request not found or already accepted")
+
+		await self.db.commit()
+
+	async def remove_friend(self, user_uuid: str, friend_uuid: str):
+		'''Remove friend'''
+		user_subquery = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+		friend_subquery = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+		query = await self.db.execute(
+			delete(Friendship)
+			.where(
+				Friendship.user_id == func.least(user_subquery, friend_subquery),
+				Friendship.friend_id == func.greatest(user_subquery, friend_subquery),
+				Friendship.status == FriendshipStatus.ACCEPTED
+			)
+		)
+
+		if query.rowcount == 0:
+			raise ValueError("Friend not found or not accepted")
 
 		await self.db.commit()

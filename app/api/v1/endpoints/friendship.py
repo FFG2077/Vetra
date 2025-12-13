@@ -41,3 +41,14 @@ async def accept_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_d
 	await friendship_service.accept_request(user_uuid=user.public_id, friend_uuid=friend_uuid)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete('/remove_friend', summary='Remove friend')
+async def remove_friend(friend_uuid: str, db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
+	'''Remove friend'''
+	repo = FriendshipRepository(db)
+	friendship_service = FriendshipService(repo)
+	
+	await friendship_service.remove_friend(user_uuid=user.public_id, friend_uuid=friend_uuid)
+
+	return Response(status_code=status.HTTP_204_NO_CONTENT)
