@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, DateTime, String, Text, Enum as SQLEnum
+from sqlalchemy import ForeignKey, DateTime, String, Text, Enum as SQLEnum, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -81,15 +81,28 @@ class UserInChat(Base):
   )
 
 
-class Friendship(Base):
-	__tablename__ = 'friendships'
-
-	id: Mapped[intpk]
-	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
-	friend_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
-	status: Mapped[str] = mapped_column(String(20), default='pending')
-
 class FriendshipStatus(str, Enum):
 	PENDING = "pending"
 	ACCEPTED = "accepted"
 	BLOCKED = "blocked"
+
+
+class Friendship(Base):
+	__tablename__ = 'friendships'
+
+	id: Mapped[intpk]
+	user_id: Mapped[int] = mapped_column(
+		ForeignKey('users.id', ondelete='CASCADE')
+	)
+	friend_id: Mapped[int] = mapped_column(
+		ForeignKey('users.id', ondelete='CASCADE')
+	)
+	status: Mapped[str] = mapped_column(
+		SQLEnum(FriendshipStatus, native_enum=False, length=20),
+		default=FriendshipStatus.PENDING
+	)
+
+	__table_args__ = (
+		UniqueConstraint('user_id', 'friend_id'),
+		CheckConstraint('user_id < friend_id')
+	)

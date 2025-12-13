@@ -1,0 +1,32 @@
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
+from repositories.friendship_repo import FriendshipRepository
+
+
+class FriendshipService:
+	def __init__(self, repo: FriendshipRepository):
+		self.repo = repo
+		
+	async def get_friends(self, public_id: str):
+		'''Get friends of current user'''
+		try:
+			friends = await self.repo.get_friends(public_id=public_id)
+			return friends
+		except IntegrityError:
+			raise HTTPException(status_code=400, detail='Error fetching friends')
+		
+	
+	async def send_request(self, user_uuid: str, friend_uuid: str):
+		'''Send friend request'''
+		try:
+			await self.repo.send_request(user_uuid=user_uuid, friend_uuid=friend_uuid)
+		except IntegrityError:
+			raise HTTPException(status_code=400, detail='Error sending friend request')
+		
+	async def accept_request(self, user_uuid: str, friend_uuid: str):
+		'''Accept friend request'''
+		try:
+			await self.repo.accept_request(user_uuid=user_uuid, friend_uuid=friend_uuid)
+		except IntegrityError:
+			raise HTTPException(status_code=400, detail='Error accepting friend request')
