@@ -11,10 +11,16 @@ class FriendshipRepository:
 
 	async def get_friends(self, public_id: str):
 		'''Get friends of current user'''
+
+		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
 		query = await self.db.execute(
 			select(User)
 			.join(Friendship, User.id == Friendship.friend_id)
-			.where(Friendship.status == FriendshipStatus.ACCEPTED)
+			.where(
+				Friendship.status == FriendshipStatus.ACCEPTED,
+				Friendship.user_id == user_id
+			)
 		)
 
 		result = query.scalars().all()
