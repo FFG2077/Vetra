@@ -44,7 +44,7 @@ async def accept_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_d
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post('/cancel_request', summary='Cancel friend request')
+@router.delete('/cancel_request', summary='Cancel friend request')
 async def cancel_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
 	'''Cancel friend request'''
 	repo = FriendshipRepository(db)
