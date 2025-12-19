@@ -101,7 +101,7 @@ class Friendship(Base):
 		SQLEnum(FriendshipStatus, native_enum=False, length=20),
 		default=FriendshipStatus.PENDING
 	)
-	requester_id: Mapped[int] = mapped_column(
+	sender_id: Mapped[int] = mapped_column(
     ForeignKey('users.id', ondelete='CASCADE'),
     nullable=False
 	)

@@ -44,6 +44,17 @@ async def accept_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_d
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.post('/cancel_request', summary='Cancel friend request')
+async def cancel_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
+	'''Cancel friend request'''
+	repo = FriendshipRepository(db)
+	friendship_service = FriendshipService(repo)
+
+	await friendship_service.cancel_request(user_uuid=user.public_id, friend_uuid=friend_uuid)
+
+	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.delete('/remove_friend', summary='Remove friend')
 async def remove_friend(friend_uuid: str, db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
 	'''Remove friend'''
@@ -53,3 +64,14 @@ async def remove_friend(friend_uuid: str, db: AsyncSession=Depends(get_db), user
 	await friendship_service.remove_friend(user_uuid=user.public_id, friend_uuid=friend_uuid)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/list_friend_requests', summary='List friend requests')
+async def list_friend_requests(db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
+	'''List friend requests'''
+	repo = FriendshipRepository(db)
+	friendship_service = FriendshipService(repo)
+
+	friend_requests = await friendship_service.list_friend_requests(user_uuid=user.public_id)
+
+	return friend_requests

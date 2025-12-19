@@ -44,7 +44,8 @@ class FriendshipRepository:
 		friendship = Friendship(
 			user_id=func.least(user_subquery, friend_subquery),
 			friend_id=func.greatest(user_subquery, friend_subquery),
-			status=FriendshipStatus.PENDING
+			status=FriendshipStatus.PENDING,
+			sender_id=user_subquery
 		)
 
 		self.db.add(friendship)
@@ -61,7 +62,8 @@ class FriendshipRepository:
 			.where(
 				Friendship.user_id == func.least(user_subquery, friend_subquery),
 				Friendship.friend_id == func.greatest(user_subquery, friend_subquery),
-				Friendship.status == FriendshipStatus.PENDING
+				Friendship.status == FriendshipStatus.PENDING,
+				Friendship.sender_id == friend_subquery
 			)
 			.values(status=FriendshipStatus.ACCEPTED)
 		)
@@ -89,3 +91,43 @@ class FriendshipRepository:
 			raise ValueError("Friend not found or not accepted")
 
 		await self.db.commit()
+	
+	async def cancel_request(self, user_uuid: str, friend_uuid: str) -> None:
+		'''Cancel sent friend request'''
+		user_subquery = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+		friend_subquery = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+		query = await self.db.execute(
+			delete(Friendship)
+			.where(
+				Friendship.user_id == func.least(user_subquery, friend_subquery),
+				Friendship.friend_id == func.greatest(user_subquery, friend_subquery),
+				Friendship.status == FriendshipStatus.PENDING,
+			)
+		)
+
+		if query.rowcount == 0:
+			raise ValueError("Friend request not found or already accepted")
+
+		await self.db.commit()
+
+	async def list_friend_requests(self, user_uuid: str):
+		'''List friend requests'''
+		user_subquery = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+
+		query = await self.db.execute(
+			select(User)
+			.join(Friendship, User.id == Friendship.sender_id)
+			.where(
+				Friendship.sender_id != user_subquery,
+				Friendship.status == FriendshipStatus.PENDING,
+				or_(
+					Friendship.user_id == user_subquery,
+					Friendship.friend_id == user_subquery
+				)
+			)
+		)
+
+		result = query.scalars().all()
+
+		return [UserOut.model_validate(u) for u in result]
