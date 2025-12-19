@@ -1,4 +1,5 @@
-from sqlalchemy import select, func, update, delete
+from typing import Any
+from sqlalchemy import Case, case, or_, select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.schemas.user import UserOut
@@ -13,14 +14,21 @@ class FriendshipRepository:
 		'''Get friends of current user'''
 
 		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
+		friend_id = case(
+			(Friendship.user_id == user_id, Friendship.friend_id),
+      else_=Friendship.user_id
+    )
 
 		query = await self.db.execute(
 			select(User)
-			.join(Friendship, User.id == Friendship.friend_id)
-			.where(
-				Friendship.status == FriendshipStatus.ACCEPTED,
-				Friendship.user_id == user_id
-			)
+			.join(Friendship, User.id == friend_id)
+      .where(
+        Friendship.status == FriendshipStatus.ACCEPTED,
+        or_(
+          Friendship.user_id == user_id,
+          Friendship.friend_id == user_id
+        )
+      )
 		)
 
 		result = query.scalars().all()

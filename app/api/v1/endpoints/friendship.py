@@ -32,6 +32,7 @@ async def send_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_db)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+
 @router.post('/accept_request', summary='Accept friend request')
 async def accept_friend_request(friend_uuid: str, db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
 	'''Accept friend request'''
