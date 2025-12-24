@@ -1,4 +1,4 @@
-from sqlalchemy import select, delete
+from sqlalchemy import and_, select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import Chat, UserInChat, RoleEnum, User
@@ -57,3 +57,31 @@ class ChatRepository:
 		)
 		await self.db.commit()
 
+	async def rename_chat(self, chat_id: int, new_name: str, public_id: str):
+		'''Rename chat'''
+		user_subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		chat_subquery = select(UserInChat.chat_id).where(
+			UserInChat.user_id == user_subquery
+		).scalar_subquery()
+
+		query = await self.db.execute(
+			update(Chat)
+			.where(
+				Chat.id == chat_id,
+				Chat.id.in_(chat_subquery)
+			)
+			.values(name=new_name)
+		)
+		if query.rowcount == 0:
+			raise ValueError("Friend not found or not accepted")
+		# await self.db.execute(
+		# 	update(Chat)
+		# 	.where(
+		# 		Chat.user_id == user_subquery,
+		# 		Chat.id == chat_id
+		# 	)
+		# 	.values(name=new_name)
+		# )
+
+		await self.db.commit()

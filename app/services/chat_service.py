@@ -33,6 +33,13 @@ class ChatService:
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail="Failed to delete chat")
 	
+	async def rename_chat(self, chat_id: int, new_name: str, public_id: str):
+		'''Rename chat'''
+		try:
+			await self.repo.rename_chat(chat_id, new_name, public_id=public_id)
+		except ValueError:
+			raise HTTPException(status_code=400, detail="Failed to rename chat")
+	
 	# async def invite_user(self, public_id: str, chat_id: int):
 	# 	'''Invite user'''
 	# 	try:
