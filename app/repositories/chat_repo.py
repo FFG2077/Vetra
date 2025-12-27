@@ -1,7 +1,7 @@
-from sqlalchemy import and_, select, delete, update
+from sqlalchemy import and_, exists, func, select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import Chat, UserInChat, RoleEnum, User
+from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship
 from domain.schemas.chat import ChatOut, CreateChatSchema
 
 
@@ -23,16 +23,34 @@ class ChatRepository:
 
 		return chat
 
-	async def add_user_to_chat(self, public_id: str, chat_id: int, role: RoleEnum.MEMBER):
+	async def add_user_to_chat(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
 		'''Add user in chat'''
-		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
-		print(subquery)
+
+		current_user_id = select(User.id).where(User.public_id == current_user).scalar_subquery()
+		friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+		friendship_exists = select(
+			exists().where(
+				and_(
+					Friendship.user_id == func.least(current_user_id, friend_id),
+					Friendship.friend_id == func.greatest(current_user_id, friend_id),
+					Friendship.status == 'accepted'
+				)
+			)
+		)
+		exists_result = (
+			await self.db.execute(friendship_exists)
+		).scalar()
+
+		if not exists_result:
+			raise ValueError("Friend not found or not accepted")
+		
 		user_in_chat = UserInChat(
-			user_id=subquery,
+			user_id=friend_id,
 			chat_id=chat_id,
 			role=role
 		)
-
+		
 		self.db.add(user_in_chat)
 		await self.db.commit()
 
