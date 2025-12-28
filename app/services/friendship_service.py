@@ -51,3 +51,11 @@ class FriendshipService:
 			return requests
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail='Error listing friend requests')
+
+	async def my_list_friend_requests(self, user_uuid: str):
+		'''List friend requests sent by current user'''
+		try:
+			requests = await self.repo.my_list_friend_requests(user_uuid=user_uuid)
+			return requests
+		except IntegrityError:
+			raise HTTPException(status_code=400, detail='Error listing sent friend requests')

@@ -1,5 +1,5 @@
 from typing import Any
-from sqlalchemy import Case, case, or_, select, func, update, delete
+from sqlalchemy import Case, case, or_, select, func, update, delete, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.schemas.user import UserOut
@@ -129,5 +129,30 @@ class FriendshipRepository:
 		)
 
 		result = query.scalars().all()
+
+		return [UserOut.model_validate(u) for u in result]
+
+	async def my_list_friend_requests(self, user_uuid: str) -> UserOut:
+		'''List friend requests sent by current user'''
+		user_subquery = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+
+		query = await self.db.execute(
+			select(User)
+			.where(
+				exists().where(
+					Friendship.friend_id == User.id,
+					Friendship.sender_id == user_subquery,
+					Friendship.status == FriendshipStatus.PENDING,
+					or_(
+						Friendship.user_id == user_subquery,
+						Friendship.friend_id == user_subquery
+					)
+				)
+			)
+		)
+		
+		result = query.scalars().all()
+
+		print(result)
 
 		return [UserOut.model_validate(u) for u in result]

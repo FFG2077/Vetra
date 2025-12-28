@@ -75,3 +75,14 @@ async def list_friend_requests(db: AsyncSession=Depends(get_db), user: User = De
 	friend_requests = await friendship_service.list_friend_requests(user_uuid=user.public_id)
 
 	return friend_requests
+
+
+@router.get('/my_list_friend_requests', summary='List my sent friend requests')
+async def my_list_friend_requests(db: AsyncSession=Depends(get_db), user: User = Depends(get_current_user)):
+	'''List my sent friend requests'''
+	repo = FriendshipRepository(db)
+	friendship_service = FriendshipService(repo)
+
+	friend_requests = await friendship_service.my_list_friend_requests(user_uuid=user.public_id)
+
+	return friend_requests
