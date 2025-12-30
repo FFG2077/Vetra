@@ -1,9 +1,10 @@
 from datetime import timedelta
 
 from authx import AuthX, AuthXConfig
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, WebSocket, WebSocketException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from jose import jwt, JWTError
 
 from .config import settings
 from infrastructure.database import User, get_db
@@ -46,4 +47,34 @@ async def get_current_user(
   user = result.scalars().first()
   if not user:
     raise HTTPException(401, "User not found")
+  return UserOut.model_validate(user)
+
+
+async def get_current_user_ws(
+  websocket: WebSocket,
+  db: AsyncSession = Depends(get_db)
+) -> User:
+  auth_header = websocket.headers.get("authorization")
+
+  if not auth_header:
+    await websocket.close(code=1008)
+    return 
+  
+  scheme, _, token = auth_header.partition(" ")
+  print(scheme, token)
+  if scheme.lower() != "bearer" or not token:
+    await websocket.close(code=1008)
+    return 
+  
+  try:
+    public_id = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM]).get("sub")
+  except JWTError:
+    raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+
+  result = await db.execute(select(User).where(User.public_id == public_id))
+  user = result.scalars().first()
+
+  if not user:
+    raise HTTPException(401, "User not found")
+  
   return UserOut.model_validate(user)
