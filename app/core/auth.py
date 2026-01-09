@@ -53,28 +53,28 @@ async def get_current_user(
 async def get_current_user_ws(
   websocket: WebSocket,
   db: AsyncSession = Depends(get_db)
-) -> User:
+) -> User | None:
   auth_header = websocket.headers.get("authorization")
 
   if not auth_header:
-    await websocket.close(code=1008)
-    return 
+    # await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+    return None
   
   scheme, _, token = auth_header.partition(" ")
   print(scheme, token)
   if scheme.lower() != "bearer" or not token:
-    await websocket.close(code=1008)
-    return 
+    # await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid or missing token")
+    return None
   
   try:
     public_id = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM]).get("sub")
   except JWTError:
-    raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+    return None
 
   result = await db.execute(select(User).where(User.public_id == public_id))
   user = result.scalars().first()
-
+  
   if not user:
-    raise HTTPException(401, "User not found")
+    raise None
   
   return UserOut.model_validate(user)

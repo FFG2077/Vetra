@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import User, get_db
@@ -11,6 +11,11 @@ router = APIRouter()
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user_ws)) -> None:
 	'''WebSocket endpoint for real-time communication'''
+	await websocket.accept()
+	if not user:
+		await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
+		return
+
 	public_id = user.public_id
 
 	await manager.connect(websocket, public_id)
