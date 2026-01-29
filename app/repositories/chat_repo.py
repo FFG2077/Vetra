@@ -23,7 +23,7 @@ class ChatRepository:
 
 		return chat
 
-	async def add_user_to_chat(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
+	async def create_chat_with_friend(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
 		'''Add user in chat'''
 
 		current_user_id = select(User.id).where(User.public_id == current_user).scalar_subquery()
@@ -44,14 +44,20 @@ class ChatRepository:
 
 		if not exists_result:
 			raise ValueError("Friend not found or not accepted")
+		users_in_chat = [
+			UserInChat(
+				user_id=current_user_id,
+				chat_id=chat_id,
+				role=role
+			),
+			UserInChat(
+				user_id=friend_id,
+				chat_id=chat_id,
+				role=role
+			),
+		]
 		
-		user_in_chat = UserInChat(
-			user_id=friend_id,
-			chat_id=chat_id,
-			role=role
-		)
-		
-		self.db.add(user_in_chat)
+		self.db.add_all(users_in_chat)
 		await self.db.commit()
 
 	async def get_chats_by_user(self, public_id: int):

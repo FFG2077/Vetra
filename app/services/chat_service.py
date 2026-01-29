@@ -10,14 +10,14 @@ class ChatService:
 	def __init__(self, repo: ChatRepository):
 		self.repo = repo
 		
-	async def create_chat(self, chat_data: CreateChatSchema, user: User):
+	async def create_chat(self, chat_data: CreateChatSchema, user: User, friend_uuid: str):
 		chat = await self.repo.create_chat(chat_data)
 
 		try:
 			if chat.is_group:
-				await self.repo.add_user_to_chat(user.public_id, chat.id, RoleEnum.ADMIN)
+				await self.repo.create_chat_with_friend(current_user=user.public_id, chat_id=chat.id, role=RoleEnum.ADMIN, friend_uuid=friend_uuid)
 			else:
-				await self.repo.add_user_to_chat(user.public_id, chat.id, RoleEnum.MEMBER)
+				await self.repo.create_chat_with_friend(current_user=user.public_id, chat_id=chat.id, role=RoleEnum.MEMBER, friend_uuid=friend_uuid)
 		except IntegrityError:
 			raise HTTPException(status_code=400, detail="User already in chat")
 		
@@ -40,10 +40,10 @@ class ChatService:
 		except ValueError:
 			raise HTTPException(status_code=400, detail="Failed to rename chat")
 	
-	async def invite_user(self, user, friend_uuid: str, chat_id: int):
-		'''Invite user'''
-		try:
-			chats = await self.repo.get_chats_by_user(friend_uuid)
-			await self.repo.add_user_to_chat(user.public_id, friend_uuid, chat_id, RoleEnum.MEMBER)
-		except IntegrityError:
-			raise HTTPException(status_code=400, detail="Failed to invite user")
+	# async def invite_user(self, user, friend_uuid: str, chat_id: int):
+	# 	'''Invite user'''
+	# 	try:
+	# 		chats = await self.repo.get_chats_by_user(friend_uuid)
+	# 		await self.repo.add_user_to_chat(user.public_id, friend_uuid, chat_id, RoleEnum.MEMBER)
+	# 	except IntegrityError:
+	# 		raise HTTPException(status_code=400, detail="Failed to invite user")
