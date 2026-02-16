@@ -34,7 +34,7 @@ class ConnectionManager:
 			return False
 		return False
 
-	async def send_message(self, db, public_id: str, chat_id: int, content: str) -> None:
+	async def send_message(self, db, public_id: str, user_name: str, chat_id: int, content: str) -> None:
 		"""Create message and broadcast to all chat members"""
 		repo = WebSocketRepository(db)
 		service = WebsocketService(repo)
@@ -51,12 +51,13 @@ class ConnectionManager:
 				chat_id=chat_id,
 				member_public_ids=member_public_ids,
 				message=message,
-				sender_public_id=public_id
+				sender_public_id=public_id,
+				sender_name=user_name
 				)
 		except ValueError as e:
 			return str(e)
 
-	async def broadcast_message_and_notifications(self, chat_id: int, member_public_ids: list[str], message: dict, sender_public_id) -> None:
+	async def broadcast_message_and_notifications(self, chat_id: int, member_public_ids: list[str], message: dict, sender_public_id: str, sender_name: str) -> None:
 		"""Send message to all online members in this chat"""
 		for public_id in member_public_ids:
 			if public_id == sender_public_id:
@@ -75,7 +76,8 @@ class ConnectionManager:
 						"event": "message:new",
 						"data": {
 							"chat_id": chat_id,
-							"sender_id": sender_public_id,  # TODO: get sender's username or display name
+							"sender_id": sender_public_id,
+							"sender_name": sender_name,
 							"content": message.content
 						}
 					})
@@ -91,8 +93,9 @@ class ConnectionManager:
 							"chat_id": chat_id,
 							"unread_count": 1, # TODO: calculate unread count
 							"last_message": {
-								"sender_id": sender_public_id,  # TODO: get sender's username or display name
-                "content": message.content[:50],
+								"sender_id": sender_public_id,
+                "sender_name": sender_name,
+                "content": message.content[:50]
 							}
 						}
 					})
