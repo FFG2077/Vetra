@@ -1,7 +1,7 @@
 from sqlalchemy import and_, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import UserInChat, User
+from infrastructure.database import UserInChat, User, Message
 
 
 class WebSocketRepository:
@@ -24,4 +24,31 @@ class WebSocketRepository:
 		if result.scalar():
 			return True
 		else:
-			raise ValueError()
+			raise ValueError("Chat not found or no permission")
+		
+	async def create_message(self, public_id: str, chat_id: int, content: str) -> Message:
+		'''Create and store a new message in the database'''
+		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		message = Message(
+			chat_id=chat_id,
+			user_id=subquery,
+			content=content
+		)
+
+		self.db.add(message)
+		await self.db.commit()
+		await self.db.refresh(message)
+
+		return message
+	
+	async def get_chat_members(self, chat_id: int) -> list[str]:
+		"""Get all member public_ids in chat"""
+		query = await self.db.execute(
+      select(User.public_id)
+      .join(UserInChat, User.id == UserInChat.user_id)
+      .where(UserInChat.chat_id == chat_id)
+    )
+		
+		members = query.scalars().all()
+		return [str(m) for m in members]

@@ -28,6 +28,7 @@ class ChatService:
 	
 	async def delete_chat(self, chat_id: int):
 		'''Delete chat'''
+		# TODO: add permission check
 		try:
 			await self.repo.delete_chat(chat_id)
 		except IntegrityError:

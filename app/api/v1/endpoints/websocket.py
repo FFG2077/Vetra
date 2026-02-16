@@ -20,6 +20,9 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
 	await manager.connect(public_id, websocket)
 
+	is_handshaked = False
+	chat_id = None
+
 	try:
 		while True:
 			'''
@@ -32,11 +35,51 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 			}
 			'''
 			data = await websocket.receive_json()
+			event = data.get("event")
 
-			if data['event'] == 'message:handshake':
-				if not await manager.handshake(db, public_id, data['data']['chat_id']):
+			# Validate event
+			if not event:
+				await websocket.close(
+          code=status.WS_1003_UNSUPPORTED_DATA,
+          reason="Event required"
+        )
+        
+				return
+
+			# handshake check
+			if not is_handshaked and event != 'message:handshake':
+				await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Handshake required")
+
+				return
+			
+			# Handle events
+
+			# Handshake event
+			elif event == 'message:handshake':
+				chat_id = data['data']['chat_id']
+				if not await manager.handshake(db, public_id, chat_id):
 					await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Chat does not exist or permission denied")
+
 					return
+
+				is_handshaked = True
+
+				await websocket.send_json({
+          "event": "handshake:ok",
+          "data": {"chat_id": chat_id}
+        })
+
+			# Send message event
+			elif event == 'message:send':
+				await manager.send_message(db, public_id, chat_id, data['data']['content'])
+				
+			# Unknown event
+			else:
+				await websocket.close(
+					code=status.WS_1003_UNSUPPORTED_DATA,
+					reason="Unknown event"
+				)
+				return
 			
 	finally:
 		await manager.disconnect(websocket, public_id)
