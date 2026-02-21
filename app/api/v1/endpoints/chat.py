@@ -10,12 +10,13 @@ from services.chat_service import ChatService
 
 router = APIRouter()
 
-@router.post('/create_chat', summary='Create chat')
-async def create_chat(friend_uuid: str, chat_data: CreateChatSchema, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+@router.post('/create_direct_chat', summary='Create chat with a friend')
+async def create_direct_chat(friend_uuid: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	'''Create a direct chat with a friend'''
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	chat = await service.create_chat(chat_data, user, friend_uuid)
+	chat = await service.create_direct_chat(user, friend_uuid)
 
 	return chat
 

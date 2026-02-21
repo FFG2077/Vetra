@@ -9,31 +9,12 @@ class ChatRepository:
 	def __init__(self, session: AsyncSession):
 		self.db = session
 
-	async def create_chat(self, chat_data: CreateChatSchema):
-		'''create chat'''
-		chat = Chat(
-			name=chat_data.name,
-			is_group=chat_data.is_group
-		)
-		self.db.add(chat)
-		await self.db.commit()
-		await self.db.refresh(chat)
-
-		chat = ChatOut.model_validate(chat)
-
-		return chat
-
-	async def create_chat_with_friend(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
-		'''Add user in chat'''
-
-		current_user_id = select(User.id).where(User.public_id == current_user).scalar_subquery()
-		friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
-
+	async def friendship_exists(self, user_id, friend_id):
 		friendship_exists = select(
 			exists().where(
 				and_(
-					Friendship.user_id == func.least(current_user_id, friend_id),
-					Friendship.friend_id == func.greatest(current_user_id, friend_id),
+					Friendship.user_id == func.least(user_id, friend_id),
+					Friendship.friend_id == func.greatest(user_id, friend_id),
 					Friendship.status == 'accepted'
 				)
 			)
@@ -42,23 +23,97 @@ class ChatRepository:
 			await self.db.execute(friendship_exists)
 		).scalar()
 
-		if not exists_result:
+		return exists_result
+	
+	async def chat_exists(self, user_id: int, friend_id: int):
+		'''Check if a direct chat exists between two users'''
+		query = await self.db.execute(
+      select(exists().where(
+          and_(
+            Chat.is_group == False,
+            Chat.id.in_(
+              select(UserInChat.chat_id)
+              .where(UserInChat.user_id == user_id)
+              .intersect(
+                select(UserInChat.chat_id)
+                .where(UserInChat.user_id == friend_id)
+              )
+            )
+          )
+				)
+			)
+    )
+
+		return query.scalar()
+
+	async def create_direct_chat(self, user, friend_uuid: str):
+		'''create a direct chat with a friend'''
+		user_id = select(User.id).where(User.public_id == user.public_id).scalar_subquery()
+		friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+		if not await self.friendship_exists(user_id, friend_id):
 			raise ValueError("Friend not found or not accepted")
-		users_in_chat = [
-			UserInChat(
-				user_id=current_user_id,
-				chat_id=chat_id,
-				role=role
-			),
-			UserInChat(
-				user_id=friend_id,
-				chat_id=chat_id,
-				role=role
-			),
+	
+		if await self.chat_exists(user_id=user_id, friend_id=friend_id):
+			raise ValueError("Direct chat already exists")
+
+		chat = Chat(
+			name=None,
+			is_group=False
+		)
+
+		self.db.add(chat)
+		await self.db.flush()
+
+		members = [
+			UserInChat(chat_id=chat.id, user_id=user_id, role=RoleEnum.ADMIN),
+			UserInChat(chat_id=chat.id, user_id=friend_id, role=RoleEnum.ADMIN)
 		]
-		
-		self.db.add_all(users_in_chat)
+		self.db.add_all(members)
+
 		await self.db.commit()
+		await self.db.refresh(chat)
+
+		chat = ChatOut.model_validate(chat)
+
+		return chat
+
+	# async def create_chat_with_friend(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
+	# 	'''Add user in chat'''
+
+	# 	current_user_id = select(User.id).where(User.public_id == current_user).scalar_subquery()
+	# 	friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+	# 	friendship_exists = select(
+	# 		exists().where(
+	# 			and_(
+	# 				Friendship.user_id == func.least(current_user_id, friend_id),
+	# 				Friendship.friend_id == func.greatest(current_user_id, friend_id),
+	# 				Friendship.status == 'accepted'
+	# 			)
+	# 		)
+	# 	)
+	# 	exists_result = (
+	# 		await self.db.execute(friendship_exists)
+	# 	).scalar()
+
+	# 	if not exists_result:
+	# 		raise ValueError("Friend not found or not accepted")
+	# 	users_in_chat = [
+	# 		UserInChat(
+	# 			user_id=current_user_id,
+	# 			chat_id=chat_id,
+	# 			role=role
+	# 		),
+	# 		UserInChat(
+	# 			user_id=friend_id,
+	# 			chat_id=chat_id,
+	# 			role=role
+	# 		),
+	# 	]
+		
+	# 	self.db.add_all(users_in_chat)
+	# 	await self.db.commit()
 
 	async def get_chats_by_user(self, public_id: int):
 		'''Get chats by user id'''

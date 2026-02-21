@@ -10,17 +10,13 @@ class ChatService:
 	def __init__(self, repo: ChatRepository):
 		self.repo = repo
 		
-	async def create_chat(self, chat_data: CreateChatSchema, user: User, friend_uuid: str):
-		chat = await self.repo.create_chat(chat_data)
+	async def create_direct_chat(self, user: User, friend_uuid: str):
 
-		try:
-			if chat.is_group:
-				await self.repo.create_chat_with_friend(current_user=user.public_id, chat_id=chat.id, role=RoleEnum.ADMIN, friend_uuid=friend_uuid)
-			else:
-				await self.repo.create_chat_with_friend(current_user=user.public_id, chat_id=chat.id, role=RoleEnum.MEMBER, friend_uuid=friend_uuid)
-		except IntegrityError:
-			raise HTTPException(status_code=400, detail="User already in chat")
+		if user.public_id == friend_uuid:
+			raise HTTPException(status_code=400, detail="Cannot create chat with yourself")
 		
+		chat = await self.repo.create_direct_chat(user, friend_uuid)
+
 		return chat
 	
 	async def my_chats(self, user: User):

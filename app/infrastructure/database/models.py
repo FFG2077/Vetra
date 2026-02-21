@@ -49,7 +49,7 @@ class Chat(Base):
 	__tablename__ = 'chats'
 
 	id: Mapped[intpk]
-	name: Mapped[str] = mapped_column(String(50))
+	name: Mapped[str] = mapped_column(String(50), nullable=True)
 	is_group: Mapped[bool] = mapped_column(default=False)
 
 	# Relationships
