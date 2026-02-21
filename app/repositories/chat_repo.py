@@ -145,17 +145,34 @@ class ChatRepository:
 	# 	await self.db.commit()
 
 	async def get_chats_by_user(self, public_id: int):
-		'''Get chats by user id'''
+		'''Get chats by user uuid'''
 		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		chat_ids_query = (
+      select(UserInChat.chat_id)
+      .where(UserInChat.user_id == subquery)
+    )
+
 		query = await self.db.execute(
-			select(Chat)
+			select(Chat, User.name)
 			.join(UserInChat, UserInChat.chat_id == Chat.id)
-			.where(UserInChat.user_id == subquery)
+			.join(User, User.id == UserInChat.user_id)
+			.where(Chat.id.in_(chat_ids_query),
+					User.id != subquery)
 		)
 
-		result = query.scalars().all()
-		
-		return result
+		result = query.all()
+
+		chats = []
+
+		for chat, friend_name in result:
+			chats.append(ChatOut.model_validate({
+				'public_id': chat.public_id,
+				'name': chat.name if chat.is_group else friend_name,
+				'is_group': chat.is_group
+			}))
+
+		return chats
 
 	async def delete_chat(self, chat_id):
 		'''Delete chat'''

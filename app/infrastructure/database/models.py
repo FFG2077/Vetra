@@ -49,6 +49,12 @@ class Chat(Base):
 	__tablename__ = 'chats'
 
 	id: Mapped[intpk]
+	public_id: Mapped[str] = mapped_column(
+		String(36),
+    unique=True,
+    index=True,
+    default=lambda: str(uuid4())
+	)
 	name: Mapped[str] = mapped_column(String(50), nullable=True)
 	is_group: Mapped[bool] = mapped_column(default=False)
 

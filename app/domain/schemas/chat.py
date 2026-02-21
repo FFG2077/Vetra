@@ -7,7 +7,7 @@ class CreateChatSchema(BaseModel):
 
 
 class ChatOut(BaseModel):
-	id: int
+	public_id: str
 	name: str | None
 	is_group: bool
 
