@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class CreateChatSchema(BaseModel):
 	name: str
-	is_group: bool
+	member_uuids: list[str] | None
 
 
 class ChatOut(BaseModel):

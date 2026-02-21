@@ -16,7 +16,18 @@ async def create_direct_chat(friend_uuid: str, db: AsyncSession = Depends(get_db
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	chat = await service.create_direct_chat(user, friend_uuid)
+	chat = await service.create_direct_chat(user.public_id, friend_uuid)
+
+	return chat
+
+
+@router.post('/create_group_chat', summary='Create a group chat')
+async def create_group_chat(creds: CreateChatSchema, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	'''Create a group chat'''
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	chat = await service.create_group_chat(user.public_id, creds)
 
 	return chat
 

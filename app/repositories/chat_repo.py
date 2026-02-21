@@ -10,6 +10,7 @@ class ChatRepository:
 		self.db = session
 
 	async def friendship_exists(self, user_id, friend_id):
+		'''Check if friendship exists between two users'''
 		friendship_exists = select(
 			exists().where(
 				and_(
@@ -46,9 +47,9 @@ class ChatRepository:
 
 		return query.scalar()
 
-	async def create_direct_chat(self, user, friend_uuid: str):
+	async def create_direct_chat(self, public_id, friend_uuid: str):
 		'''create a direct chat with a friend'''
-		user_id = select(User.id).where(User.public_id == user.public_id).scalar_subquery()
+		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
 		friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
 
 		if not await self.friendship_exists(user_id, friend_id):
@@ -75,6 +76,34 @@ class ChatRepository:
 		await self.db.refresh(chat)
 
 		chat = ChatOut.model_validate(chat)
+
+		return chat
+	
+	async def create_group_chat(self, user_uuid: int, chat_name: str, member_uuids: list[str]):
+		'''Create a group chat'''
+		user_id = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+
+		chat = Chat(
+			name=chat_name,
+			is_group=True
+		)
+
+		self.db.add(chat)
+		await self.db.flush()
+
+		owner = UserInChat(chat_id=chat.id, user_id=user_id, role=RoleEnum.OWNER)
+
+		for member_uuid in member_uuids:
+			member_id = select(User.id).where(User.public_id == member_uuid).scalar_subquery()
+
+			if not await self.friendship_exists(user_id, member_id):
+				raise ValueError(f"Friend with uuid {member_uuid} not found or not accepted")
+			member = UserInChat(chat_id=chat.id, user_id=member_id, role=RoleEnum.MEMBER)
+
+			self.db.add_all([owner, member])
+
+		await self.db.commit()
+		await self.db.refresh(chat)
 
 		return chat
 

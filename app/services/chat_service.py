@@ -10,12 +10,18 @@ class ChatService:
 	def __init__(self, repo: ChatRepository):
 		self.repo = repo
 		
-	async def create_direct_chat(self, user: User, friend_uuid: str):
+	async def create_direct_chat(self, public_id: str, friend_uuid: str):
 
-		if user.public_id == friend_uuid:
+		if public_id == friend_uuid:
 			raise HTTPException(status_code=400, detail="Cannot create chat with yourself")
 		
-		chat = await self.repo.create_direct_chat(user, friend_uuid)
+		chat = await self.repo.create_direct_chat(public_id, friend_uuid)
+
+		return chat
+	
+	async def create_group_chat(self, user_uuid: str, creds: CreateChatSchema):
+		# user_uuid: int, chat_name: str, member_uuids: list[str]
+		chat = await self.repo.create_group_chat(user_uuid, creds.name, creds.member_uuids)
 
 		return chat
 	
