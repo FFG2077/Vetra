@@ -1,7 +1,7 @@
 from sqlalchemy import and_, exists, func, select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship
+from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship, Message
 from domain.schemas.chat import ChatOut, CreateChatSchema
 
 
@@ -46,6 +46,8 @@ class ChatRepository:
     )
 
 		return query.scalar()
+	
+	# def get_chat
 
 	async def create_direct_chat(self, public_id, friend_uuid: str):
 		'''create a direct chat with a friend'''
@@ -106,6 +108,27 @@ class ChatRepository:
 		await self.db.refresh(chat)
 
 		return chat
+	
+	async def get_chat_history(self, chat_id: int, public_id: str):
+		'''Get chat history'''
+		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		query = await self.db.execute(
+			select(Message)
+			.join(UserInChat,
+				and_(
+					UserInChat.chat_id == Message.chat_id,
+					UserInChat.user_id == user_id
+				)
+			)
+			.where(Message.chat_id == chat_id)
+		)
+
+		result = query.scalars().all()
+		print(result)
+
+		return result
+
 
 	# async def create_chat_with_friend(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
 	# 	'''Add user in chat'''
@@ -173,6 +196,7 @@ class ChatRepository:
 			}))
 
 		return chats
+
 
 	async def delete_chat(self, chat_id):
 		'''Delete chat'''

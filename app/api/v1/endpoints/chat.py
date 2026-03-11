@@ -59,3 +59,13 @@ async def invite_user(user_id: str, chat_id: str, db: AsyncSession = Depends(get
 	await service.invite_user(user, user_id, chat_id)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/history', summary='Get chat history')
+async def get_chat_history(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	history = await service.get_chat_history(chat_id, user.public_id)
+
+	return history

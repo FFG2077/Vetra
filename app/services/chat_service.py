@@ -42,6 +42,14 @@ class ChatService:
 			await self.repo.rename_chat(chat_id, new_name, public_id=public_id)
 		except ValueError:
 			raise HTTPException(status_code=400, detail="Failed to rename chat")
+		
+	async def get_chat_history(self, chat_id: int, public_id: str):
+		'''Get chat history'''
+		try:
+			history = await self.repo.get_chat_history(chat_id, public_id)
+			return history
+		except ValueError:
+			raise HTTPException(status_code=400, detail="Failed to get chat history")
 	
 	# async def invite_user(self, user, friend_uuid: str, chat_id: int):
 	# 	'''Invite user'''
