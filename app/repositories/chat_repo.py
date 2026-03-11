@@ -1,7 +1,7 @@
 from sqlalchemy import and_, exists, func, select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship, Message
+from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship, Message, FriendshipStatus
 from domain.schemas.chat import ChatOut, CreateChatSchema
 
 
@@ -11,12 +11,13 @@ class ChatRepository:
 
 	async def friendship_exists(self, user_id, friend_id):
 		'''Check if friendship exists between two users'''
+
 		friendship_exists = select(
 			exists().where(
 				and_(
 					Friendship.user_id == func.least(user_id, friend_id),
 					Friendship.friend_id == func.greatest(user_id, friend_id),
-					Friendship.status == 'accepted'
+					Friendship.status == FriendshipStatus.ACCEPTED
 				)
 			)
 		)
@@ -46,8 +47,6 @@ class ChatRepository:
     )
 
 		return query.scalar()
-	
-	# def get_chat
 
 	async def create_direct_chat(self, public_id, friend_uuid: str):
 		'''create a direct chat with a friend'''
@@ -197,7 +196,6 @@ class ChatRepository:
 
 		return chats
 
-
 	async def delete_chat(self, chat_id):
 		'''Delete chat'''
 		query = await self.db.execute(
@@ -224,13 +222,54 @@ class ChatRepository:
 		)
 		if query.rowcount == 0:
 			raise ValueError("Friend not found or not accepted")
-		# await self.db.execute(
-		# 	update(Chat)
-		# 	.where(
-		# 		Chat.user_id == user_subquery,
-		# 		Chat.id == chat_id
-		# 	)
-		# 	.values(name=new_name)
-		# )
 
+		await self.db.commit()
+
+	async def add_user_to_chat(self, user_uuid: str, friend_uuid: str, chat_id: int):
+		'''Add user to chat'''
+		user_subquery = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+		friend_subquery = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
+
+		if not await self.friendship_exists(user_subquery, friend_subquery):
+			raise ValueError("Friend not found or not accepted")
+		
+		friend_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == friend_subquery,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		user_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == user_subquery,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		friend_in_chat_result = (
+			await self.db.execute(friend_in_chat_exists)
+		).scalar()
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_exists)
+		).scalar()
+
+		if friend_in_chat_result:
+			raise ValueError("Friend is already in chat")
+
+		if not user_in_chat_result:
+			raise ValueError("Denied access to chat")
+
+		user_in_chat = UserInChat(
+			user_id=friend_subquery,
+			chat_id=chat_id,
+			role=RoleEnum.MEMBER
+		)
+
+		self.db.add(user_in_chat)
 		await self.db.commit()

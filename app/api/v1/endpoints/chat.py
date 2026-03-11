@@ -52,16 +52,16 @@ async def rename_chat(chat_id: int, new_name: str, db: AsyncSession = Depends(ge
 
 
 @router.post('/invite_user', summary='Invite a user to a group')
-async def invite_user(user_id: str, chat_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def invite_user(user_uuid: str, chat_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	await service.invite_user(user, user_id, chat_id)
+	await service.invite_user(user.public_id, user_uuid, chat_id)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post('/history', summary='Get chat history')
+@router.get('/history', summary='Get chat history')
 async def get_chat_history(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)

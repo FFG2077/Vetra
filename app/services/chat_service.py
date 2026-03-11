@@ -11,7 +11,6 @@ class ChatService:
 		self.repo = repo
 		
 	async def create_direct_chat(self, public_id: str, friend_uuid: str):
-
 		if public_id == friend_uuid:
 			raise HTTPException(status_code=400, detail="Cannot create chat with yourself")
 		
@@ -51,10 +50,9 @@ class ChatService:
 		except ValueError:
 			raise HTTPException(status_code=400, detail="Failed to get chat history")
 	
-	# async def invite_user(self, user, friend_uuid: str, chat_id: int):
-	# 	'''Invite user'''
-	# 	try:
-	# 		chats = await self.repo.get_chats_by_user(friend_uuid)
-	# 		await self.repo.add_user_to_chat(user.public_id, friend_uuid, chat_id, RoleEnum.MEMBER)
-	# 	except IntegrityError:
-	# 		raise HTTPException(status_code=400, detail="Failed to invite user")
+	async def invite_user(self, user_uuid: str, friend_uuid: str, chat_id: int):
+		'''Invite a user to a group chat'''
+		try:
+			await self.repo.add_user_to_chat(user_uuid, friend_uuid, chat_id)
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
