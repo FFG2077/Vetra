@@ -37,7 +37,7 @@ async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: Us
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 	
-	await service.delete_chat(chat_id)
+	await service.delete_chat(user.public_id, chat_id)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 

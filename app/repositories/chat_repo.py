@@ -112,6 +112,24 @@ class ChatRepository:
 		'''Get chat history'''
 		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
 
+		user_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == user_id,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_exists)
+		).scalar()
+
+		print(user_in_chat_result)
+
+		if not user_in_chat_result:
+			raise ValueError("Denied access to chat")
+
 		query = await self.db.execute(
 			select(Message)
 			.join(UserInChat,
@@ -124,7 +142,6 @@ class ChatRepository:
 		)
 
 		result = query.scalars().all()
-		print(result)
 
 		return result
 
@@ -180,7 +197,7 @@ class ChatRepository:
 			.join(UserInChat, UserInChat.chat_id == Chat.id)
 			.join(User, User.id == UserInChat.user_id)
 			.where(Chat.id.in_(chat_ids_query),
-					User.id != subquery)
+				User.id != subquery)
 		)
 
 		result = query.all()
@@ -196,8 +213,26 @@ class ChatRepository:
 
 		return chats
 
-	async def delete_chat(self, chat_id):
+	async def delete_chat(self, public_id, chat_id):
 		'''Delete chat'''
+		user_subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		user_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == user_subquery,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_exists)
+		).scalar()
+
+		if not user_in_chat_result:
+			raise ValueError("Denied access to chat")
+
 		query = await self.db.execute(
 			delete(Chat)
 			.where(Chat.id == chat_id)

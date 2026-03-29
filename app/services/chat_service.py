@@ -27,13 +27,12 @@ class ChatService:
 	async def my_chats(self, user: User):
 		return await self.repo.get_chats_by_user(user.public_id)
 	
-	async def delete_chat(self, chat_id: int):
+	async def delete_chat(self, user_uuid: str, chat_id: int):
 		'''Delete chat'''
-		# TODO: add permission check
 		try:
-			await self.repo.delete_chat(chat_id)
-		except IntegrityError:
-			raise HTTPException(status_code=400, detail="Failed to delete chat")
+			await self.repo.delete_chat(user_uuid, chat_id)
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
 	
 	async def rename_chat(self, chat_id: int, new_name: str, public_id: str):
 		'''Rename chat'''
@@ -47,8 +46,8 @@ class ChatService:
 		try:
 			history = await self.repo.get_chat_history(chat_id, public_id)
 			return history
-		except ValueError:
-			raise HTTPException(status_code=400, detail="Failed to get chat history")
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
 	
 	async def invite_user(self, user_uuid: str, friend_uuid: str, chat_id: int):
 		'''Invite a user to a group chat'''
