@@ -125,8 +125,6 @@ class ChatRepository:
 			await self.db.execute(user_in_chat_exists)
 		).scalar()
 
-		print(user_in_chat_result)
-
 		if not user_in_chat_result:
 			raise ValueError("Denied access to chat")
 
@@ -307,4 +305,36 @@ class ChatRepository:
 		)
 
 		self.db.add(user_in_chat)
+		await self.db.commit()
+
+	async def leave_chat(self, user_uuid: str, chat_uuid: str):
+		user_id = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+		chat_id = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
+
+		user_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == user_id,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_exists)
+		).scalar()
+
+		if not user_in_chat_result:
+			raise ValueError("Denied access to chat")
+		
+		query = (
+			delete(UserInChat)
+			.where(
+				UserInChat.user_id == user_id,
+				UserInChat.chat_id == chat_id
+			)
+		)
+
+		await self.db.execute(query)
+
 		await self.db.commit()

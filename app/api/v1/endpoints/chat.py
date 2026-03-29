@@ -69,3 +69,13 @@ async def get_chat_history(chat_id: int, db: AsyncSession = Depends(get_db), use
 	history = await service.get_chat_history(chat_id, user.public_id)
 
 	return history
+
+
+@router.post('/leave_chat', summary='leave chat')
+async def leave_chat(chat_uuid: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	await service.leave_chat(user.public_id, chat_uuid)
+
+	return Response(status_code=status.HTTP_204_NO_CONTENT)

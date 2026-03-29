@@ -55,3 +55,10 @@ class ChatService:
 			await self.repo.add_user_to_chat(user_uuid, friend_uuid, chat_id)
 		except Exception as e:
 			raise HTTPException(status_code=400, detail=f"{e}")
+		
+	async def leave_chat(self, user_uuid: str, chat_uuid: str):
+		'''Leave chat'''
+		try:
+			await self.repo.leave_chat(user_uuid, chat_uuid)
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
