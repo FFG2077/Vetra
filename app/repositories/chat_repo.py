@@ -48,7 +48,7 @@ class ChatRepository:
 
 		return query.scalar()
 
-	async def create_direct_chat(self, public_id, friend_uuid: str):
+	async def create_direct_chat(self, public_id: str, friend_uuid: str):
 		'''create a direct chat with a friend'''
 		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
 		friend_id = select(User.id).where(User.public_id == friend_uuid).scalar_subquery()
@@ -80,7 +80,7 @@ class ChatRepository:
 
 		return chat
 	
-	async def create_group_chat(self, user_uuid: int, chat_name: str, member_uuids: list[str]):
+	async def create_group_chat(self, user_uuid: str, chat_name: str, member_uuids: list[str]):
 		'''Create a group chat'''
 		user_id = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
 
@@ -181,7 +181,7 @@ class ChatRepository:
 	# 	self.db.add_all(users_in_chat)
 	# 	await self.db.commit()
 
-	async def get_chats_by_user(self, public_id: int):
+	async def get_chats_by_user(self, public_id: str):
 		'''Get chats by user uuid'''
 		subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
 
@@ -211,7 +211,7 @@ class ChatRepository:
 
 		return chats
 
-	async def delete_chat(self, public_id, chat_id):
+	async def delete_chat(self, public_id: str, chat_id: int):
 		'''Delete chat'''
 		user_subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
 
