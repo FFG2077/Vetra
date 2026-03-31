@@ -237,24 +237,51 @@ class ChatRepository:
 		)
 		await self.db.commit()
 
-	async def rename_chat(self, chat_id: int, new_name: str, public_id: str):
+	async def rename_chat(self, chat_uuid: str, new_name: str, public_id: str):
 		'''Rename chat'''
 		user_subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
 
-		chat_subquery = select(UserInChat.chat_id).where(
-			UserInChat.user_id == user_subquery
-		).scalar_subquery()
+		chat_subquery = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
 
+		user_in_chat_query = select(
+			exists().where(
+				and_(
+					UserInChat.chat_id == chat_subquery,
+					UserInChat.user_id == user_subquery,
+				)
+			)
+		)
+
+		is_group_query = select(
+			exists().where(
+				and_(
+					Chat.public_id == chat_uuid,
+					Chat.is_group == 1
+				)
+			)
+		)
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_query)
+		).scalar()
+
+		is_group_result = (
+			await self.db.execute(is_group_query)
+		).scalar()
+
+		if not user_in_chat_result:
+			raise ValueError("You are not a member of the chat")
+		
+		if not is_group_result:
+			raise ValueError("You can't rename direct chat")
+		
 		query = await self.db.execute(
 			update(Chat)
 			.where(
-				Chat.id == chat_id,
-				Chat.id.in_(chat_subquery)
+				Chat.public_id == chat_uuid
 			)
 			.values(name=new_name)
 		)
-		if query.rowcount == 0:
-			raise ValueError("Friend not found or not accepted")
 
 		await self.db.commit()
 

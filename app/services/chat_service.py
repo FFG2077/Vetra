@@ -38,8 +38,8 @@ class ChatService:
 		'''Rename chat'''
 		try:
 			await self.repo.rename_chat(chat_id, new_name, public_id=public_id)
-		except ValueError:
-			raise HTTPException(status_code=400, detail="Failed to rename chat")
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
 		
 	async def get_chat_history(self, chat_id: int, public_id: str):
 		'''Get chat history'''

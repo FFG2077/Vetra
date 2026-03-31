@@ -42,11 +42,11 @@ async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: Us
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put('/rename_chat', summary='Rename chat')
-async def rename_chat(chat_id: int, new_name: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def rename_chat(chat_uuid: str, new_name: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	await service.rename_chat(chat_id, new_name, user.public_id)
+	await service.rename_chat(chat_uuid, new_name, user.public_id)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
