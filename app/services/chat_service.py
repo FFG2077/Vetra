@@ -66,6 +66,8 @@ class ChatService:
 			raise HTTPException(status_code=400, detail=f"{e}")
 		
 	async def kick_user(self, current_user_uuid: str, user_uuid: str, chat_uuid: str):
+		if current_user_uuid == user_uuid:
+			raise HTTPException(status_code=400, detail="You can't kick yourself out")
 		try:
 			await self.repo.kick_user(current_user_uuid, user_uuid, chat_uuid)
 		except Exception as e:
