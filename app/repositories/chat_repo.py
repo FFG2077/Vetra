@@ -307,7 +307,8 @@ class ChatRepository:
 		self.db.add(user_in_chat)
 		await self.db.commit()
 
-	async def leave_chat(self, user_uuid: str, chat_uuid: str):
+	async def delete_user_from_chat(self, user_uuid: str, chat_uuid: str):
+		'''leave chat'''
 		user_id = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
 		chat_id = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
 
@@ -338,3 +339,60 @@ class ChatRepository:
 		await self.db.execute(query)
 
 		await self.db.commit()
+
+	async def kick_user(self, current_user_uuid: str, user_uuid: str, chat_uuid: str):
+		user_id = select(User.id).where(User.public_id == current_user_uuid).scalar_subquery()
+		memeber_id = select(User.id).where(User.public_id == user_uuid).scalar_subquery()
+		chat_id = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
+
+		chat_is_group_query = select(
+			exists().where(
+				and_(
+					Chat.id == chat_id,
+					Chat.is_group == 1
+				)
+			)
+		)
+
+		chat_is_group = (
+			await self.db.execute(chat_is_group_query)
+		).scalar()
+
+		if not chat_is_group:
+			raise ValueError("The chat does not exist or it is not a group")
+
+		user_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == user_id,
+					UserInChat.chat_id == chat_id,
+					UserInChat.role == RoleEnum.OWNER
+				)
+			)
+		)
+
+		member_in_chat_exists = select(
+			exists().where(
+				and_(
+					UserInChat.user_id == memeber_id,
+					UserInChat.chat_id == chat_id
+				)
+			)
+		)
+
+		user_in_chat_result = (
+			await self.db.execute(user_in_chat_exists)
+		).scalar()
+
+
+		member_in_chat_result = (
+			await self.db.execute(member_in_chat_exists)
+		).scalar()
+
+		if not user_in_chat_result:
+			raise ValueError("Denied access to chat")
+		
+		if not member_in_chat_result:
+			raise ValueError("The user is absent from the chat")
+		
+		await self.delete_user_from_chat(user_uuid, chat_uuid)

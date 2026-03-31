@@ -79,3 +79,13 @@ async def leave_chat(chat_uuid: str, db: AsyncSession = Depends(get_db), user: U
 	await service.leave_chat(user.public_id, chat_uuid)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete('/kick_user', summary='Kick user from group')
+async def kick_user(user_uuid: str, chat_uuid: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+	repo = ChatRepository(db)
+	service = ChatService(repo)
+
+	await service.kick_user(user.public_id, user_uuid, chat_uuid)
+
+	return Response(status_code=status.HTTP_204_NO_CONTENT)

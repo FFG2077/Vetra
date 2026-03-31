@@ -59,6 +59,12 @@ class ChatService:
 	async def leave_chat(self, user_uuid: str, chat_uuid: str):
 		'''Leave chat'''
 		try:
-			await self.repo.leave_chat(user_uuid, chat_uuid)
+			await self.repo.delete_user_from_chat(user_uuid, chat_uuid)
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=f"{e}")
+		
+	async def kick_user(self, current_user_uuid: str, user_uuid: str, chat_uuid: str):
+		try:
+			await self.repo.kick_user(current_user_uuid, user_uuid, chat_uuid)
 		except Exception as e:
 			raise HTTPException(status_code=400, detail=f"{e}")
