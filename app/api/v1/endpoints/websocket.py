@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, WebSocket, status
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import User, get_db
@@ -80,6 +80,8 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 					reason="Unknown event"
 				)
 				return
-			
+	except WebSocketDisconnect:
+		print("Client disconnected")
+
 	finally:
-		await manager.disconnect(websocket, public_id)
+		await manager.disconnect(public_id)
