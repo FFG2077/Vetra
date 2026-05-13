@@ -22,6 +22,7 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
 	is_handshaked = False
 	chat_id = None
+	chat_uuid = None
 
 	try:
 		while True:
@@ -29,8 +30,8 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 			{
 			'event': 'message:send/delete/edit/handshake',
 			'data': {
-				'message_id': '', // for delete/edit
-				'chat_id': '',   // for handshake/send
+				'message_uuid': '', // for delete/edit
+				'chat_uuid': '',   // for handshake/send
 				'content': '',  // for send/edit
 			}
 			'''
@@ -56,8 +57,8 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
 			# Handshake event
 			elif event == 'message:handshake':
-				chat_id = data['data']['chat_id']
-				if not await manager.handshake(db, public_id, chat_id):
+				chat_uuid = data['data']['chat_uuid'] # начать отсюда! убрать chat_id и начать работать с public_id у chat
+				if not await manager.handshake(db, public_id, chat_uuid):
 					await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Chat does not exist or permission denied")
 
 					return
@@ -66,12 +67,12 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
 				await websocket.send_json({
           "event": "handshake:ok",
-          "data": {"chat_id": chat_id}
+          "data": {"chat_uuid": chat_uuid}
         })
 
 			# Send message event
 			elif event == 'message:send':
-				await manager.send_message(db, public_id, user.name, chat_id, data['data']['content'])
+				await manager.send_message(db, public_id, user.name, chat_uuid, data['data']['content'])
 				
 			# Unknown event
 			else:
@@ -79,7 +80,8 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 					code=status.WS_1003_UNSUPPORTED_DATA,
 					reason="Unknown event"
 				)
-				return
+				return 
+	
 	except WebSocketDisconnect:
 		print("Client disconnected")
 

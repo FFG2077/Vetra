@@ -40,6 +40,13 @@ class Message(Base):
 	__tablename__ = 'messages'
 
 	id: Mapped[intpk]
+	public_id: Mapped[str] = mapped_column(
+		String(36),
+		unique=True,
+		index=True,
+		default=lambda: str(uuid4())
+	)
+
 	chat_id: Mapped[int] = mapped_column(ForeignKey('chats.id', ondelete='CASCADE'))
 	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
 
