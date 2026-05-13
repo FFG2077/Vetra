@@ -72,7 +72,17 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
 			# Send message event
 			elif event == 'message:send':
-				await manager.send_message(db, public_id, user.name, chat_uuid, data['data']['content'])
+				try:
+					await manager.send_message(db, public_id, user.name, chat_uuid, data['data']['content'])
+
+					await websocket.send_json({
+						"event": "message:sent:ok",
+					})
+				except Exception as e:
+					await websocket.send_json({
+						"event": "message:sent:error",
+						"data": {"error": str(e)}
+					})
 				
 			# Unknown event
 			else:
