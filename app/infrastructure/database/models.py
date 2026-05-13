@@ -42,7 +42,10 @@ class Message(Base):
 	id: Mapped[intpk]
 	chat_id: Mapped[int] = mapped_column(ForeignKey('chats.id', ondelete='CASCADE'))
 	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+
 	content: Mapped[str] = mapped_column(Text, nullable=False)
+
+	created_at: Mapped[created_at]
 
 
 class Chat(Base):
