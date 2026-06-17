@@ -60,10 +60,13 @@ class ConnectionManager:
 	async def broadcast_message_and_notifications(self, chat_uuid: str, member_public_ids: list[str], message: dict, sender_public_id: str, sender_name: str) -> None:
 		"""Send message to all online members in this chat"""
 		for public_id in member_public_ids:
+			print(public_id)
 			if public_id == sender_public_id:
 				continue
 
 			websocket = self.active_connections.get(public_id)
+
+			print('error!')
 
 			if websocket is None:
 				continue
@@ -71,9 +74,11 @@ class ConnectionManager:
 			# Only send message to users who are in the chat (handshaked)
 			if (public_id in self.user_chats
 					and chat_uuid in self.user_chats[public_id]):
+				
+				print('error!')
 				try:
 					await websocket.send_json({
-						"event": "message:new",
+						"event": "message.new",
 						"data": {
 							"chat_uuid": chat_uuid,
 							"sender_id": sender_public_id,
@@ -88,7 +93,7 @@ class ConnectionManager:
 			else:
 				try:
 					await websocket.send_json({
-						"event": "notification:new_message",
+						"event": "notification.new_message",
 						"data": {
 							"chat_uuid": chat_uuid,
 							"unread_count": None, # TODO: calculate unread count

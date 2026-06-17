@@ -2,7 +2,7 @@ from sqlalchemy import and_, exists, func, select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database import Chat, UserInChat, RoleEnum, User, Friendship, Message, FriendshipStatus
-from domain.schemas.chat import ChatOut, CreateChatSchema
+from domain.schemas.chat import ChatOut, CreateChatSchema, MessageOut
 
 
 class ChatRepository:
@@ -108,9 +108,11 @@ class ChatRepository:
 
 		return chat
 	
-	async def get_chat_history(self, chat_id: int, public_id: str):
+	async def get_chat_history(self, chat_uuid: str, public_id: str):
 		'''Get chat history'''
 		user_id = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		chat_id = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
 
 		user_in_chat_exists = select(
 			exists().where(
@@ -129,19 +131,15 @@ class ChatRepository:
 			raise ValueError("Denied access to chat")
 
 		query = await self.db.execute(
-			select(Message)
-			.join(UserInChat,
-				and_(
-					UserInChat.chat_id == Message.chat_id,
-					UserInChat.user_id == user_id
-				)
-			)
+			select(Message.public_id, Message.content, User.name.label('user_name'))
+			.join(User, Message.user_id == User.id)
 			.where(Message.chat_id == chat_id)
+			.order_by(Message.created_at.desc())
 		)
 
-		result = query.scalars().all()
+		result = query.mappings().all()
 
-		return result
+		return [MessageOut.model_validate(item) for item in result]
 
 
 	# async def create_chat_with_friend(self, current_user: str, friend_uuid: str, chat_id: int, role: RoleEnum.MEMBER):
@@ -211,9 +209,11 @@ class ChatRepository:
 
 		return chats
 
-	async def delete_chat(self, public_id: str, chat_id: int):
+	async def delete_chat(self, public_id: str, chat_uuid: str):
 		'''Delete chat'''
 		user_subquery = select(User.id).where(User.public_id == public_id).scalar_subquery()
+
+		chat_id = select(Chat.id).where(Chat.public_id == chat_uuid).scalar_subquery()
 
 		user_in_chat_exists = select(
 			exists().where(
@@ -233,7 +233,7 @@ class ChatRepository:
 
 		query = await self.db.execute(
 			delete(Chat)
-			.where(Chat.id == chat_id)
+			.where(Chat.public_id == chat_uuid)
 		)
 		await self.db.commit()
 

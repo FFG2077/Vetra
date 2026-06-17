@@ -3,6 +3,7 @@ from api.v1 import api_router
 from infrastructure.database import Base, engine
 from fastapi.openapi.utils import get_openapi
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # create tables
@@ -19,6 +20,14 @@ app = FastAPI(title='Seetalk', lifespan=lifespan)
 # routes
 app.include_router(api_router)
 
+# middleware development only, remove in production
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"]
+)
 
 def custom_openapi():
 	if app.openapi_schema:

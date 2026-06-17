@@ -33,11 +33,11 @@ async def create_group_chat(creds: CreateChatSchema, db: AsyncSession = Depends(
 
 
 @router.delete('/delete_chat', summary='Delete chat')
-async def delete_chat(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def delete_chat(chat_uuid: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 	
-	await service.delete_chat(user.public_id, chat_id)
+	await service.delete_chat(user.public_id, chat_uuid)
 
 	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -62,11 +62,11 @@ async def invite_user(user_uuid: str, chat_id: str, db: AsyncSession = Depends(g
 
 
 @router.get('/history', summary='Get chat history')
-async def get_chat_history(chat_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_chat_history(chat_uuid: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
 	repo = ChatRepository(db)
 	service = ChatService(repo)
 
-	history = await service.get_chat_history(chat_id, user.public_id)
+	history = await service.get_chat_history(chat_uuid, user.public_id)
 
 	return history
 

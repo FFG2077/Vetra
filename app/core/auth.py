@@ -75,6 +75,24 @@ async def get_current_user_ws(
   user = result.scalars().first()
   
   if not user:
-    raise None
+    return None
+  
+  return UserOut.model_validate(user)
+
+
+async def authenticate_ws(
+  token: str,
+  db: AsyncSession = Depends(get_db)
+) -> UserOut | None:
+  try:
+    public_id = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM]).get("sub")
+  except JWTError:
+    return None
+  
+  result = await db.execute(select(User).where(User.public_id == public_id))
+  user = result.scalars().first()
+
+  if not user:
+    return None
   
   return UserOut.model_validate(user)

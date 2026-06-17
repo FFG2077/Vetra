@@ -29,10 +29,10 @@ class ChatService:
 	async def my_chats(self, user: User):
 		return await self.repo.get_chats_by_user(user.public_id)
 	
-	async def delete_chat(self, user_uuid: str, chat_id: int):
+	async def delete_chat(self, user_uuid: str, chat_uuid: str):
 		'''Delete chat'''
 		try:
-			await self.repo.delete_chat(user_uuid, chat_id)
+			await self.repo.delete_chat(user_uuid, chat_uuid)
 		except Exception as e:
 			raise HTTPException(status_code=400, detail=f"{e}")
 	

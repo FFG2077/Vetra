@@ -13,3 +13,8 @@ class ChatOut(BaseModel):
 
 	class Config:
 		from_attributes = True
+
+class MessageOut(BaseModel):
+	user_name: str
+	content: str
+	public_id: str
