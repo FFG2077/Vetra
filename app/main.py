@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 	yield
 
 
-app = FastAPI(title='Seetalk', lifespan=lifespan)
+app = FastAPI(title='Vetra', lifespan=lifespan)
 
 # routes
 app.include_router(api_router)
@@ -34,7 +34,7 @@ def custom_openapi():
 		return app.openapi_schema
 	
 	openapi_schema = get_openapi(
-		title="Seetalk API",
+		title="Vetra",
 		version="1.0.0",
 		routes=app.routes,
 	)

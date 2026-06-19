@@ -4,7 +4,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
 	# Project
-	APP_NAME: str = 'SeeTalk'
+	APP_NAME: str = 'Vetra'
 
 	# DataBase
 	DATABASE_URL: str
