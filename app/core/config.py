@@ -11,10 +11,6 @@ class Settings(BaseSettings):
 
 	# DataBase
 	DATABASE_URL: str
-	MYSQL_ROOT_PASSWORD: str
-	MYSQL_DATABASE: str
-	MYSQL_USER: str
-	MYSQL_PASSWORD: str
 	# AuthX
 	JWT_SECRET_KEY: str
 
