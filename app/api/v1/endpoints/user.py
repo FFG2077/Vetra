@@ -11,14 +11,6 @@ from services.chat_service import ChatService
 
 router = APIRouter()
 
-@router.get('/get_users', summary='Get all users')
-async def get_users(db: AsyncSession=Depends(get_db)):
-	'''Debug / temporary function'''
-	repo = UserRepository(db)
-	users = await repo.get_users()
-	return users
-
-
 @router.get('/get_me', summary='get current user', response_model=UserOut)
 async def get_me(user: User = Depends(get_current_user)):
 	return user
