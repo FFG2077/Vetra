@@ -71,11 +71,11 @@ MYSQL_PASSWORD=password
 docker compose up --build -d
 
 ### 4. API available at:
-http://localhost:8000
-http://localhost:8000/docs
+http://localhost:8001
+http://localhost:8001/docs
 
 ### 🔌 WebSocket available at:
-ws://localhost:8000/ws/{chat_uuid}
+ws://localhost:8001/ws/{chat_uuid}
 
 ---
 
@@ -86,7 +86,7 @@ ws://localhost:8000/ws/{chat_uuid}
 - Volume: db_data
 
 ### Backend
-- Port: 8000
+- Port: 8001
 - Reload: enabled (dev mode)
 
 ---
@@ -97,7 +97,7 @@ ws://localhost:8000/ws/{chat_uuid}
 ## 📌 Notes
 - WebSockets are used for real-time communication
 - Database runs inside Docker container
-- Ensure ports 8000 and 3306 are free
+- Ensure ports 8001 and 3306 are free
 - Environment variables are required via `.env`
 
 ## 🔐 Security
